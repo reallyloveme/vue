@@ -1,8 +1,11 @@
 /* @flow */
 
 import he from 'he'
+// 匹配解析html标签
 import { parseHTML } from './html-parser'
+// 匹配解析模版文本
 import { parseText } from './text-parser'
+// 过滤器解析撇配
 import { parseFilters } from './filter-parser'
 import { genAssignmentCode } from '../directives/model'
 import { extend, cached, no, camelize, hyphenate } from 'shared/util'
@@ -21,23 +24,31 @@ import {
   getAndRemoveAttrByRegex
 } from '../helpers'
 
+// 匹配@或v-on开头的属性
 export const onRE = /^@|^v-on:/
+// dirRE是匹配v-或@或:开头的属性，即vue中的绑定数据或事件的语法。
 export const dirRE = process.env.VBIND_PROP_SHORTHAND
   ? /^v-|^@|^:|^\.|^#/
   : /^v-|^@|^:|^#/
+ // forAliasRE匹配v-for中的属性值，比如item in items、(item, index) of items。
 export const forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/
+// forIteratorRE是对forAliasRE中捕获的第一部分内容，进行拆解，
+// 我们都知道v-for中in|of前最后可以有三个逗号分隔的参数。
 export const forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/
 const stripParensRE = /^\(|\)$/g
 const dynamicArgRE = /^\[.*\]$/
-
+// argRE匹配并捕获:开头的属性。
 const argRE = /:(.*)$/
+// bindRE匹配:或v-bind开头的属性，即绑定数据的语法。
 export const bindRE = /^:|^\.|^v-bind:/
 const propBindRE = /^\./
+// modifierRE是匹配@click.stop、@keyup.enter等属性中的修饰符。
 const modifierRE = /\.[^.\]]+(?=[^\]]*$)/g
-
+// 匹配v-slot
 const slotRE = /^v-slot(:|$)|^#/
 
 const lineBreakRE = /[\r\n]/
+// 匹配空格
 const whitespaceRE = /[ \f\t\r\n]+/g
 
 const invalidAttributeRE = /[\s"'<>\/=]/
@@ -76,27 +87,27 @@ export function createASTElement (
 /**
  * Convert HTML string to AST.
  */
-export function parse (
+export function parse (e
   template: string,
   options: CompilerOptions
 ): ASTElement | void {
   warn = options.warn || baseWarn
 
-  platformIsPreTag = options.isPreTag || no
-  platformMustUseProp = options.mustUseProp || no
-  platformGetTagNamespace = options.getTagNamespace || no
-  const isReservedTag = options.isReservedTag || no
-  maybeComponent = (el: ASTElement) => !!(
+  platformIsPreTag = options.isPreTag || no // 获取是否是pre标签
+  platformMustUseProp = options.mustUseProp || no // 判断是否需要通过绑定prop来绑定属性
+  platformGetTagNamespace = options.getTagNamespace || no // 获取tag的命名空间，svg或math
+  const isReservedTag = options.isReservedTag || no // 获取是否是保留标签html或svg标签
+  maybeComponent = (el: ASTElement) => !!( //  是否是组件
     el.component ||
     el.attrsMap[':is'] ||
     el.attrsMap['v-bind:is'] ||
     !(el.attrsMap.is ? isReservedTag(el.attrsMap.is) : isReservedTag(el.tag))
   )
-  transforms = pluckModuleFunction(options.modules, 'transformNode')
-  preTransforms = pluckModuleFunction(options.modules, 'preTransformNode')
+  transforms = pluckModuleFunction(options.modules, 'transformNode') // 转换style
+  preTransforms = pluckModuleFunction(options.modules, 'preTransformNode') 
   postTransforms = pluckModuleFunction(options.modules, 'postTransformNode')
 
-  delimiters = options.delimiters
+  delimiters = options.delimiters // 分割符
 
   const stack = []
   const preserveWhitespace = options.preserveWhitespace !== false
@@ -113,7 +124,7 @@ export function parse (
       warn(msg, range)
     }
   }
-
+ // 节点元素关闭，即查询结束元素
   function closeElement (element) {
     trimEndingWhitespace(element)
     if (!inVPre && !element.processed) {
@@ -173,7 +184,7 @@ export function parse (
       postTransforms[i](element, options)
     }
   }
-
+  // 修剪结束空白
   function trimEndingWhitespace (el) {
     // remove trailing whitespace node
     if (!inPre) {
@@ -187,7 +198,7 @@ export function parse (
       }
     }
   }
-
+  // 检查根约束，slot或template标签
   function checkRootConstraints (el) {
     if (el.tag === 'slot' || el.tag === 'template') {
       warnOnce(
@@ -204,7 +215,7 @@ export function parse (
       )
     }
   }
-
+  // 解析HTML
   parseHTML(template, {
     warn,
     expectHTML: options.expectHTML,
@@ -214,6 +225,7 @@ export function parse (
     shouldDecodeNewlinesForHref: options.shouldDecodeNewlinesForHref,
     shouldKeepComment: options.comments,
     outputSourceRange: options.outputSourceRange,
+    // 开始标签
     start (tag, attrs, unary, start, end) {
       // check namespace.
       // inherit parent ns if there is one
@@ -300,7 +312,7 @@ export function parse (
         closeElement(element)
       }
     },
-
+    // 结束标签
     end (tag, start, end) {
       const element = stack[stack.length - 1]
       // pop stack
@@ -311,7 +323,7 @@ export function parse (
       }
       closeElement(element)
     },
-
+    // 分析获取文本内容
     chars (text: string, start: number, end: number) {
       if (!currentParent) {
         if (process.env.NODE_ENV !== 'production') {
@@ -383,6 +395,7 @@ export function parse (
         }
       }
     },
+    // 静态语法树
     comment (text: string, start, end) {
       // adding anything as a sibling to the root node is forbidden
       // comments should still be allowed, but ignored

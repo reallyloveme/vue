@@ -391,21 +391,31 @@ export function mergeOptions (
   vm?: Component
 ): Object {
   if (process.env.NODE_ENV !== 'production') {
+    // 非生产环境，如果有options.components,则校验组件名称是否合法
     checkComponents(child)
   }
 
+  // 判断如果child是函数，则取options对象
   if (typeof child === 'function') {
     child = child.options
   }
 
+  // 格式化child的props
   normalizeProps(child, vm)
+  // 格式化child的Inject
   normalizeInject(child, vm)
+  // 格式child的Directives（指令）
   normalizeDirectives(child)
 
   // Apply extends and mixins on the child options,
   // but only if it is a raw options object that isn't
   // the result of another mergeOptions call.
   // Only merged options has the _base property.
+  // 在子选项上应用扩展和混合，
+  // 但前提是它是一个原始选项对象，而不是
+  // 另一个 mergeOptions 调用的结果。
+  // 只有合并选项具有 _base 属性。
+  // 如果child没有_base属性
   if (!child._base) {
     if (child.extends) {
       parent = mergeOptions(parent, child.extends, vm)

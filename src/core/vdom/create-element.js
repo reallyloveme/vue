@@ -51,6 +51,7 @@ export function _createElement (
   children?: any,
   normalizationType?: number
 ): VNode | Array<VNode> {
+  // 判断data是否有值
   if (isDef(data) && isDef((data: any).__ob__)) {
     process.env.NODE_ENV !== 'production' && warn(
       `Avoid using observed data object as vnode data: ${JSON.stringify(data)}\n` +
@@ -63,6 +64,7 @@ export function _createElement (
   if (isDef(data) && isDef(data.is)) {
     tag = data.is
   }
+  // 判断tag是否为空
   if (!tag) {
     // in case of component :is set to falsy value
     return createEmptyVNode()
@@ -80,6 +82,7 @@ export function _createElement (
     }
   }
   // support single function children as default scoped slot
+  // 接着如果子元素只有一个函数，则作为默认的slot
   if (Array.isArray(children) &&
     typeof children[0] === 'function'
   ) {
@@ -87,16 +90,18 @@ export function _createElement (
     data.scopedSlots = { default: children[0] }
     children.length = 0
   }
+  // child子元素统一处理
   if (normalizationType === ALWAYS_NORMALIZE) {
     children = normalizeChildren(children)
   } else if (normalizationType === SIMPLE_NORMALIZE) {
     children = simpleNormalizeChildren(children)
   }
   let vnode, ns
+  // 如果tag是字符串
   if (typeof tag === 'string') {
     let Ctor
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag)
-    if (config.isReservedTag(tag)) {
+    if (config.isReservedTag(tag)) { // 如果tag是字符串，且是平台保留标签名。则直接创建VNode对象。
       // platform built-in elements
       if (process.env.NODE_ENV !== 'production' && isDef(data) && isDef(data.nativeOn) && data.tag !== 'component') {
         warn(
@@ -108,10 +113,11 @@ export function _createElement (
         config.parsePlatformTagName(tag), data, children,
         undefined, undefined, context
       )
-    } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
+    } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) { // 如果tag是字符串，则执行resolveAsset(context.$options, 'components', tag)
       // component
+      // 创建组件
       vnode = createComponent(Ctor, data, context, children, tag)
-    } else {
+    } else { // 如果tag是字符串，但既不是平台保留标签名，也不是components中的自定义标签，则执行vnode = new VNode(tag, data, children, undefined, undefined, context)创建VNode对象。
       // unknown or unlisted namespaced elements
       // check at runtime because it may get assigned a namespace when its
       // parent normalizes children
@@ -120,7 +126,7 @@ export function _createElement (
         undefined, undefined, context
       )
     }
-  } else {
+  } else { // 如果tag不是字符串，则执行vnode = createComponent(tag, data, context, children)创建对象。
     // direct component options / constructor
     vnode = createComponent(tag, data, context, children)
   }

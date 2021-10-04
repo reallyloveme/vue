@@ -1,4 +1,13 @@
+/*
+ * @Author: your name
+ * @Date: 2021-10-02 16:17:53
+ * @LastEditTime: 2021-10-04 14:24:56
+ * @LastEditors: your name
+ * @Description: In User Settings Edit
+ * @FilePath: /vue/src/platforms/web/runtime/patch.js
+ */
 /* @flow */
+
 
 import * as nodeOps from 'web/runtime/node-ops'
 import { createPatchFunction } from 'core/vdom/patch'

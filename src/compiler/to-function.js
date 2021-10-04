@@ -19,6 +19,7 @@ function createFunction (code, errors) {
 }
 
 export function createCompileToFunctionFn (compile: Function): Function {
+  // 创建cache对象
   const cache = Object.create(null)
 
   return function compileToFunctions (
@@ -26,6 +27,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     options?: CompilerOptions,
     vm?: Component
   ): CompiledFunctionResult {
+    // options对象处理
     options = extend({}, options)
     const warn = options.warn || baseWarn
     delete options.warn
@@ -49,17 +51,19 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // check cache
+    // 从缓存中取出编译结果
     const key = options.delimiters
       ? String(options.delimiters) + template
       : template
     if (cache[key]) {
       return cache[key]
     }
-
+    // 缓存中没有，则调用compile函数进行编译
     // compile
     const compiled = compile(template, options)
 
     // check compilation errors/tips
+    // 开发环境，检测变异错误，进行提示
     if (process.env.NODE_ENV !== 'production') {
       if (compiled.errors && compiled.errors.length) {
         if (options.outputSourceRange) {
@@ -88,6 +92,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // turn code into functions
+    // 返回render函数和staticRenderFns函数
     const res = {}
     const fnGenErrors = []
     res.render = createFunction(compiled.render, fnGenErrors)
@@ -108,7 +113,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
         )
       }
     }
-
+    // 将返回的函数添加到缓存中
     return (cache[key] = res)
   }
 }

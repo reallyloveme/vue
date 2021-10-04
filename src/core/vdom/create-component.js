@@ -105,6 +105,7 @@ export function createComponent (
   children: ?Array<VNode>,
   tag?: string
 ): VNode | Array<VNode> | void {
+  // // Ctor为空表示从context的components属性上没找到tag对应的属性
   if (isUndef(Ctor)) {
     return
   }

@@ -1,3 +1,11 @@
+/*
+ * @Author: your name
+ * @Date: 2021-10-02 16:17:53
+ * @LastEditTime: 2021-10-03 16:55:16
+ * @LastEditors: your name
+ * @Description: In User Settings Edit
+ * @FilePath: /vue/src/core/observer/dep.js
+ */
 /* @flow */
 
 import type Watcher from './watcher'
@@ -11,6 +19,7 @@ let uid = 0
  * directives subscribing to it.
  */
 export default class Dep {
+  // 监听事件
   static target: ?Watcher;
   id: number;
   subs: Array<Watcher>;

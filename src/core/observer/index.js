@@ -108,10 +108,12 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * or the existing observer if the value already has one.
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
+  // 非对象直接返回
   if (!isObject(value) || value instanceof VNode) {
     return
   }
   let ob: Observer | void
+  // 判断value是否有observer对象，没有则创建一个Observer
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
     ob = value.__ob__
   } else if (
@@ -139,31 +141,38 @@ export function defineReactive (
   customSetter?: ?Function,
   shallow?: boolean
 ) {
+  // 实例化dep
   const dep = new Dep()
-
+  // Object.getOwnPropertyDescriptor() 方法返回指定对象上一个自有属性对应的属性描述符。
+  // （自有属性指的是直接赋予该对象的属性，不需要从原型链上进行查找的属性）
+  // 判断目标对象中是否存在对应的key
   const property = Object.getOwnPropertyDescriptor(obj, key)
   if (property && property.configurable === false) {
     return
   }
 
   // cater for pre-defined getter/setters
+  // 获取属性的getter， setter方法
   const getter = property && property.get
   const setter = property && property.set
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key]
   }
-
+  // 给属性增加双向绑定
   let childOb = !shallow && observe(val)
+  // 添加装饰器
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {
       const value = getter ? getter.call(obj) : val
       if (Dep.target) {
+        // 添加dep
         dep.depend()
         if (childOb) {
           childOb.dep.depend()
           if (Array.isArray(value)) {
+            // 数组递归增加dep
             dependArray(value)
           }
         }
@@ -188,6 +197,7 @@ export function defineReactive (
         val = newVal
       }
       childOb = !shallow && observe(newVal)
+      // 发出通知
       dep.notify()
     }
   })
